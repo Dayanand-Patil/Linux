@@ -1,0 +1,1 @@
+cmd_/home/jfrog/Documents/ss/Trainings/KernPro/irq/inttest.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/jfrog/Documents/ss/Trainings/KernPro/irq/inttest.ko /home/jfrog/Documents/ss/Trainings/KernPro/irq/inttest.o /home/jfrog/Documents/ss/Trainings/KernPro/irq/inttest.mod.o
