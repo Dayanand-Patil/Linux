@@ -25,7 +25,7 @@ static DECLARE_TASKLET(t_name, t_fun, 0);
 
 static irqreturn_t my_interrupt(int irq, void *dev_id)
 {
-	atomic_inc(&counter_th);
+	atomic_inc(&counter_th);  //increment counter for atomic operation
 	printk(KERN_INFO " current jiffies = %ld\n", jiffies);
 	tasklet_schedule(&t_name);
 	mdelay(delay);		/* hoke up delay to create backlogs */

@@ -9,13 +9,13 @@ module_param(irq, int, S_IRUGO);
 
 static void t_fun(unsigned long t_arg);
 
-static DECLARE_TASKLET(t_name, t_fun, 0);
+static DECLARE_TASKLET(t_name, t_fun, 0); //declare t_name tasklet with t_fun fun and data 0.
 
 static irqreturn_t my_interrupt(int irq, void *dev_id)
 {
-	irq_counter++;
+	irq_counter++; 
 	pr_info("In the ISR: counter = %d\n", irq_counter);
-	tasklet_schedule(&t_name);
+	tasklet_schedule(&t_name); //schedule tasklet to excecute later in bottom halve
 	return IRQ_NONE;	/* we return IRQ_NONE because we are just observing */
 }
 

@@ -54,13 +54,13 @@ static struct file_operations char_dev_fops = {
 exp::
 To use a character driver, first you should register it with the system. Then you should expose it to the user space.
 
-cdev_init and cdev_add functions perform the character device registration. 
-cdev_add adds the character device to the system. 
+cdev_init() and cdev_add() functions perform the character device registration. 
+cdev_add() adds the character device to the system. 
 When cdev_add function successfully completes, the device is live and the kernel can invoke its operations.
 
 In order to access this device from user space, you should create a device node in /dev. 
-You do this by creating a virtual device class using class_create(), 
-then creating a device and registering it with sysfs using the device_create() function. device_create will create a device file in /dev.
+class_create()-- creating a virtual device class using , 
+device_create()--> creating a device and registering it with sysfs. device_create will create a device file in /dev.
 
 */
 

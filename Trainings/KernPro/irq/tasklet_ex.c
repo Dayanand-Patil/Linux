@@ -18,7 +18,7 @@ static int __init my_init(void)
 	t_data.i = 100;
 	t_data.j = 200;
 	pr_info(" scheduling my tasklet, jiffies= %ld \n", jiffies);
-	tasklet_schedule(&t_name);
+	tasklet_schedule(&t_name);   //schedule tasklet in bottom  halve for later operation
 	return 0;
 }
 
@@ -28,6 +28,7 @@ static void __exit my_exit(void)
 		cleanup_module);
 }
 
+//This function work as bottom halve for given tasklet
 static void t_fun(unsigned long t_arg)
 {
 	struct simp *datum;

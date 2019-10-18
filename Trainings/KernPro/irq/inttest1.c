@@ -16,7 +16,8 @@ static irqreturn_t my_interrupt(int irq, void *dev_id)
 
 static int __init my_init(void)
 {
-	for (i = 0; i < 24; i++) {
+	//IRQ: IRQs are hardware lines over which devices can send interrupt signals to the microprocessor
+	for (i = 0; i < 24; i++) {  // assign the my_interrupt() to (0-24) irq lines 
 		request_irq(i, my_interrupt, IRQF_SHARED, "my_interrupt",
 			    &my_dev_id);
 	}
