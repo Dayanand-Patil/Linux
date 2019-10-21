@@ -27,4 +27,47 @@ A device sends a PIC chip an interrupt, and the PIC tells the CPU an interrupt o
 A processor typically maps each interrupt type to a corresponding pointer in low memory. The collection of pointers for all the interrupt types is an interrupt vector. Each pointer in the vector points to the ISR for the corresponding interrupt type (IRQ line)." An interrupt vector is only ONE memory address of one interrupt handler. An interrupt vector table is a group of several memory addresses." 
 
 
+	******SoftIRQs vs Tasklets***********
+
+/* PLEASE, avoid to allocate new softirqs, if you need not _really_ high
+   frequency threaded job scheduling. For almost all the purposes
+   tasklets are more than enough. F.e. all serial device BHs et
+   al. should be converted to tasklets, not to softirqs.
+ */
+
+enum
+{
+        HI_SOFTIRQ=0,    /* High Priority */
+        TIMER_SOFTIRQ,
+        NET_TX_SOFTIRQ,
+        NET_RX_SOFTIRQ,
+        BLOCK_SOFTIRQ,
+        BLOCK_IOPOLL_SOFTIRQ,
+        TASKLET_SOFTIRQ,
+        SCHED_SOFTIRQ,
+        HRTIMER_SOFTIRQ,
+        RCU_SOFTIRQ,    /* Preferable RCU should always be the last softirq */
+
+        NR_SOFTIRQS
+};
+
+The key differences between softirq and tasklet are:
+
+    	---> Allocation
+
+    Softirqs are statically allocated at compile-time. Unlike tasklets, you cannot dynamically register and destroy softirqs.
+    Tasklets can be statically allocated using DECLARE_TASKLET(name, func, data) or can also be allocated dynamically and initialized at runtime using tasklet_init(name, func, data)
+
+    	---> Concurrency
+
+    Softirqs can run concurrently on several CPUs, even if they are of the same type because softirqs are reentrant functions and must explicitly protect their data structures with spinlocks.
+    Tasklets are non-reentrant and tasklets of the same type are always serialized: in other words, the same type of tasklet cannot be executed by two CPUs at the same time. However, tasklets of different types can be executed concurrently on several CPUs.
+
+	---> Processing
+
+    Softirqs are activated by means of the raise_softirq(). The pending softirqs are processed by do_softirq() and ksoftirqd kernel thread after being enabled by local_bh_enable() or by spin_unlock_bh()
+    Tasklets are a bottom-half mechanism built on top of softirqs i.e. tasklets are represented by two softirqs: HI_SOFTIRQ and TASKLET_SOFTIRQ. Tasklets are actually run from a softirq. The only real difference in these types is that the HI_SOFTIRQ based tasklets run prior to the TASKLET_SOFTIRQ tasklets. So, tasklet_schedule() basically calls raise_softirq(TASKLET_SOFTIRQ)
+    Note that softirqs (and hence tasklets and timers) are run on return from hardware interrupts, or on return from a system call. Also as soon as the thread that raised the softirq ends, that single softirq (and on other) is run to minimize softirq latency.
+
+shareimprove this answer
 

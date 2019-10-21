@@ -1,3 +1,6 @@
+
+/*Shedule tasklet from process context*/
+
 #include <linux/module.h>
 #include <linux/sched.h>
 #include <linux/interrupt.h>
@@ -18,7 +21,7 @@ static int __init my_init(void)
 	t_data.i = 100;
 	t_data.j = 200;
 	pr_info(" scheduling my tasklet, jiffies= %ld \n", jiffies);
-	tasklet_schedule(&t_name);   //schedule tasklet in bottom  halve for later operation
+	tasklet_schedule(&t_name);   //schedule tasklet from process context
 	return 0;
 }
 
