@@ -1,0 +1,17 @@
+
+
+    What is DMA and IOMMU ? How DMA and IOMMU used ?
+    What if architecture does not support IOMMU ?
+    How to use DMA without IOMMU ?
+
+
+
+
+DMA (direct memory access) is a hardware feature that allows memory access to occur independent of the program currently run by the micro processor. It can either be used by I/O devices to directly read from or write to memory without executing any micro processor instructions during the DMA transfer. The micro processor can execute an unrelated program at the same time. Additionally, DMA can be used for efficient copy of memory blocks, again concurrently with any running program.
+
+IOMMU (input–output memory management unit) is a hardware feature that extends DMA access for I/O devices. It is similar to the MMU used to map virtual memory addresses to physical memory address. While the normal MMU is used to give each process its own virtual address space, the IOMMU is used to give each I/O device its own virtual address space. That way, the I/O device sees a simple contiguous address space, possibly accessible with 32 bit addresses while in reality the physical address space is fragmented and extends beyond 32 bit.
+
+DMA without IOMMU requires the I/O devices to use the real physical addresses. The physical addresses must also be used by the processor when setting up the DMA transfer. Additionall, DMA without IOMMU can be used for memory copy (as it involves no I/O devices).
+
+IOMMU is only available on more powerful micro processor. You will not find it on microcontrollers and most embedded systems.
+
