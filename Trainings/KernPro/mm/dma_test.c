@@ -35,9 +35,9 @@ static int __init my_init (void)
 
     pr_info ("Loading DMA allocation test module");
     pr_info ("Testing dma_alloc_coherent()..........");
-    kbuf = dma_alloc_coherent (NULL, size, &handle, GFP_KERNEL);
+    kbuf = dma_alloc_coherent (NULL, size, &handle, GFP_KERNEL); //DMA buffer available until program exists
 	/* handle ==> gives physical addr for device 
-	   kbuf ==> gives linear(kernel virtual) addr. of buffer 
+	   kbuf ==> gives linear(kernel virtual) addr. of buffer */ 
 
     output (kbuf, handle, size, "This is the dma_alloc_coherent() string");
     dma_free_coherent (NULL, size, kbuf, handle);
@@ -46,7 +46,7 @@ static int __init my_init (void)
 	
     pr_info ("Testing dma_map_single()................\n\n");
     kbuf = kmalloc (size, GFP_KERNEL);
-    handle = dma_map_single (NULL, kbuf, size, direction);
+    handle = dma_map_single (NULL, kbuf, size, direction); //singlr time use for each call
     output (kbuf, handle, size, "This is the dma_map_single() string");
     dma_unmap_single (NULL, handle, size, direction);
     kfree (kbuf);
@@ -62,6 +62,20 @@ static int __init my_init (void)
 
     return 0;
 }
+
+/*
+
+
+dma_alloc_coherent() 
+works pretty well if your kernel program just need to allocate a DMA buffer and keep using it until the program exits. It ensures coherency by flushing cache before CPU (your program) or DMA controller read from the DMA buffer so you don't have to pay much attention to 'sync' CPU/cache/DMA controller before read/write to the DMA buffer. The only thing annoys me is that you need to keep track of the physical address dma_addr_t, buffer address and allocated size so you can dma_free_coherent() it properly later.
+
+dma_map_single()/dma_unmap_single() 
+are stream APIs and are supposed to have better performance than dma_alloc_coherent() in case the DMA buffer is single use for each call to DMA controller. Although I haven't seen any significant performance difference between them. And you are supposed to use dma_sync_single_for_device()/dma_sync_single_for_cpu() to assure coherency by yourself.
+
+In some cases dma_map_single() is preferred over dma_alloc_coherent(). In one of my projects the DMA function has to take an allocated buffer (allocated by kzalloc()/kmalloc()) as parameter from the caller and map it to a DMA region. In this case I didn't have control over how and when the buffer would be allocated/free but can only map it to DMA region using dma_map_single()/dma_unmap_single().
+
+*/
+
 static void __exit my_exit (void)
 {
     pr_info ("Module Unloading");
@@ -73,3 +87,4 @@ module_exit (my_exit);
 MODULE_AUTHOR ("Team Veda");
 MODULE_DESCRIPTION ("DMA interface test");
 MODULE_LICENSE ("GPL v2");
+

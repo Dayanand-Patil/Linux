@@ -57,22 +57,22 @@ static __init int char_dev_init(void)
 		pr_err("failed to reserve major/minor range\n");
 		return -1;
 	}
-	veda_cdev = cdev_alloc(); // Create wrapper over device inode to access 
+	veda_cdev = cdev_alloc(); // allocate char device structure 
 	if (veda_cdev == NULL) {
 		pr_err("cdev_alloc() failed\n");
 		unregister_chrdev_region(mydev, count);
 		return -1;
 	}
-	cdev_init(veda_cdev, &fbops);  // assign operation to inode(ultimetlay to the file/class directory)
-	ret = cdev_add(veda_cdev, mydev, count);
+	cdev_init(veda_cdev, &fbops);  // initialise char device structure with fbops operations
+	ret = cdev_add(veda_cdev, mydev, count); //add device structure into kernel
 	if (ret < 0) {
 		pr_err("Error registering device driver\n");
 		cdev_del(veda_cdev);
 		unregister_chrdev_region(mydev, count);
 		return -1;
 	}
-	veda_class = class_create(THIS_MODULE, "VIRTUAL"); // Create virtual class entny into /proc
-	device_create(veda_class, NULL, mydev, NULL, "%s", "vramdev"); //create device instance
+	veda_class = class_create(THIS_MODULE, "VIRTUAL"); // Create virtual class entny into /proc in sysfs
+	device_create(veda_class, NULL, mydev, NULL, "%s", "vramdev"); //create device instance under /dev
 	return SUCCESS;
 }
 
