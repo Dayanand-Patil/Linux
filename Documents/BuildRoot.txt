@@ -1,0 +1,49 @@
+Generate minimal image with ssh and python package support for Rpi VITA project
+
+build root
+	1. kernel compilation
+	2. bootloader compilation
+
+arch/
+	arch specific file(e.g arm)
+config/
+	board specific config files(e.g beaglebone)
+
+make beaglebone_deconfig
+make menuconfig
+
+toolchain
+	internal -- uses the buildroot toolchain
+	external -- download 3rrd party toolchain(linaro)
+
+toolchain
+	linaro
+
+		pre-installed(mention local path)
+init system
+	systemV
+	busybox
+
+kernel:
+	disable kernel option if kernel already built
+application packages
+	select openssh
+bootloader:
+	disable uboot bootloader option if already built
+
+rootfs images:
+	/output/images/rootfs.tar (extract this to nfs directory where busybox compiled rootfs is there(remove older rootfs(i.e busybox compiled)), from there bbb will fetch that binary at boot time)
+
+++++++++++++++++++Enable kernel and boot loader compilation thr build root
+
+  	make boneblack_defconfig
+	make menuconfig
+		select rootfile system options
+		select kernel image options --(latest kernel or from git url; define image type ; load address)
+		bootloader uboot option
+
+ls buildroot-2019.08.1/output/images/
+am335x-boneblack.dtb  am335x-bonegreen.dtb  am335x-evmsk.dtb  rootfs.ext2  rootfs.tar  uEnv.txt
+am335x-bone.dtb       am335x-evm.dtb        MLO               rootfs.ext4  u-boot.img  uImage
+
+

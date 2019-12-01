@@ -1,0 +1,54 @@
+uboot source understanding
+board specific init  board/ti/board.c 
+cpu specific init - /arch/arm/cpu
+arch armv7
+	start.S rom bootloader handover the controle to SPL
+start.s -> cpu init -> soc init
+
+default config file for board : config/am335x_boneblack_defconfig
+
+
+cross-toolchain installation - 
+	x86_64.armeb-linux-gnueabihf-gcc-linaro-7.4-2019.02
+export toolchain path -- export PATH = $PATH:<path/to/bin_in toolchain>
+
+export PATH=$PATH:/home/daya/workspace/porting/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/bin
+
+distclean
+
+apply board default config 
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- defconfig
+
+edit .config file 
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+
+compile (<1 min)[Generate: uboot.img, u-boot-spl & MLO]
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 
+
+
++++++++++++++Kernel compilation for uimage++++++++++++++++
+download kernel for BBB
+---->Board oraganisation
+arch/arm --(processor related info) mmu , exception of the processor, cache memory
+arch/arm/mach-* : code specific to soc(vendor specific i.e: ti, qcomm, broadcom)
+	soc specific code div into 2 parts: 
+	1. board file: .c files conaining the periphral registration function(led, lcd, ethernet) board-omap3beagle.c 
+	2. soc shared common code : .c code to initialize onchip peripherals(clock, voltage, pinctrl, pinmux, gpio,i2c) this file are common 			to all boards which are sharing omap3 family soc
+ 
+all board specific files are removed(moved to device tree) and there will be one generic board file for all omap2 soc's(board-generic.c[board selection thr IFDEF BOARD_<name>])   
+throgh this we are making the multiboard support to soc. only need to modify in device tree according to board.
+how linux detects specific platform/board?? --> thr comatible string in Device tree
+
+--->Driver organisation
+/drivers/ : drivers for all the peripherals on soc (drivers are given by the vendor)
+
+
+kernel compilation:
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- defconfig
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs LOADADDR=0x80008000 -j4
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- am335x-boneblack.dtb

@@ -1,0 +1,32 @@
+//Spinlock
+better to use spinlocks in new code; spinlocks are well debugged,
+they handle issues like interrupts and kernel preemption, and others reading your
+code do not have to work to understand what you are doing.
+
+
+//Lock-Free Algorithms
+asks is the circular buffer.
+circular buffer <linux/kfifo.h>
+requires an array and two index values to track where the next new value goes and
+which value should be removed from the buffer next.
+Networking adaptors, in
+particular, often use circular buffers to exchange data (packets) with the processor.
+
+//Atomic Variables <asm/atomic.h>
+The operations are very fast, because they compile to a single machine instruction whenever possible.
+void atomic_set(atomic_t *v, int i);
+int atomic_read(atomic_t *v); add, sub, inc, dec
+data typing in these functions is architecture dependent. defined as int but is unsigned long for a few architectures
+
+//Bit Operations <asm/bitops.h>
+
+Atomic bit operations are very fast, single machine instruction without disabling interrupts
+The functions are architecture dependent. They are guaranteed to be atomic even on SMP computers and are useful
+to keep coherence across processors.
+
+//bit operations:
+void set_bit(nr, void *addr); clear, change(toggle), test,
+
+tries to atomically acquire a lock using either test_and_set_bit or test_and_clear_bit.it assumes that the lock lives at bit nr of address addr. bit is 0 when the lock is free or nonzero when the lock is busy.
+
+

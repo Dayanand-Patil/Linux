@@ -1,0 +1,41 @@
+TI tech ref mannual: AM335x ARM Cortex-A8 Microprocessors (MPUs) Technical Reference Manual .pdf 
+
+section 25: General-Purpose Input/Output
+
+4 x 32 = 128 pins
+
+each pin have 8 multiplexed mode(0-7)
+
+To configure pin as GPIO : mode 7
+
+location : sys/class/gpio/<node_of_gpios>
+
+GPIO0[4] = 0 x 32  + 4 = GPIO4
+GPIO1[4] = 1 x 32  + 4 = GPIO36
+
+Register to set the mode (using controle module reg.) 
+pin configuration register start addr = base addr of control module register(check into memory map) + offset(0x800)
+[mode, pull up/pull down] done by pin conf reg.
+
+pin configuration register start addr : ls /sys/kernel/debug/pinctrl/<addr>.pinmux
+	u can check all pins mode configuration here
+u can see the same pin configutation at linux/arch/arm/boot/dts/ location
+
+check the pin functions and group and allocation:: cat pinmux-pins 
+
+how many groups(i2c, emmc, hdmi, lcd) are there in kernel related to pins? :: cat pingroups
+
+play with user LED:
+	check the GPIO on which usr led r connected
+	ls /sys/class/led/
+	perform operation on led: echo '<option>' > trigger	
+	show <options> to pass to led: cat trigger
+
+Controlling LED using C usr application
+	LED_SYS_PATH 
+	snpritf(buf) : concat 2 strings(syspath and led_node) into buf
+	fd = open(): open buf 
+	write(): write the control value to fd
+
+
+

@@ -1,0 +1,70 @@
+http://mercury.pr.erau.edu/~siewerts/extra/code/operating-systems/EXAMPLES/Cooperstein-Drivers/
+
+High and Low Memory 
+Before accessing a specific high-memory page, the kernel must set up an explicit virtual mapping to make that page available in the kernel's address space
+Thus, many kernel data structures must be placed in low memory; high memory tends to be reserved for user-space process pages
+A typical split dedicates 3 GB to user space, and 1 GB for kernel space
+
+The Memory Map and Struct Page
+ the kernel has used logical addresses to refer to pages of physical memory.
+logical addresses are not available for high memory.(defined in <linux/mm.h>) keep track of physical memory
+there is one 'struct page' for each physical page on the system
+On some systems, there is a single array called mem_map which keeps track of all the physical page struct
+ Nonuniform memory access (NUMA) systems and those with widely discontiguous physical memory may have more than one memory map array
+Some functions and macros are defined for translating between struct page pointers and virtual addresses:
+struct page *virt_to_page(void *kaddr); -- takes a kernel logical address and returns its associated struct page pointer. 
+struct page *pfn_to_page(int pfn); --Returns the struct page pointer for the given page frame number
+
+#include <linux/highmem.h>
+void *kmap(struct page *page); --kmap returns a kernel virtual address for any page in the system.
+low-memory pages, it just returns the logical address of the page, 
+
+void kunmap(struct page *page);
+
+15.1.5. Page Tables
+the processor must have a mechanism for translating virtual addresses into its corresponding physical addresses. This mechanism is called a page table
+
+15.1.6. Virtual Memory Areas
+(VMA) is the kernel data structure used to manage distinct regions of a process's address space.
+# cat /proc/1/maps     look at init
+Each field in /proc/*/maps (except the image name) corresponds to a field in 'struct vm_area_struct'
+
+When a user-space process calls mmap to map device memory into its address space, the system responds by creating a new VMA to represent that mapping
+
+start-end         perm offset major:minor inode    image
+08048000-0804e000 r-xp 00000000 03:01 64652      /sbin/init   text -- area for the program's executable code (often called text)
+0804e000-0804f000 rw-p 00006000 03:01 64652      /sbin/init   data -- variables info
+0804f000-08053000 rwxp 00000000 00:00 0           zero-mapped BSS
+40000000-40015000 r-xp 00000000 03:01 96278      /lib/ld-2.3.2.so   text
+40015000-40016000 rw-p 00014000 03:01 96278      /lib/ld-2.3.2.so   data
+40016000-40017000 rw-p 00000000 00:00 0           BSS for ld.so
+42000000-4212e000 r-xp 00000000 03:01 80290      /lib/tls/libc-2.3.2.so   text
+4212e000-42131000 rw-p 0012e000 03:01 80290      /lib/tls/libc-2.3.2.so   data
+42131000-42133000 rw-p 00000000 00:00 0           BSS for libc
+bffff000-c0000000 rwxp 00000000 00:00 0           Stack segment
+ffffe000-fffff000 ---p 00000000 00:00 0           vsyscall page
+
+struct vm_area_struct (defined in <linux/mm.h>). These fields may be used by device drivers in their mmap implementation
+
+15.1.7. The Process Memory Map
+Each process in the system has a struct mm_struct (defined in <linux/sched.h>) that contains the process's list of virtual memory areas, page tables, and various other bits of memory management information, along with a semaphore (mmap_sem) and a spinlock (page_table_lock). The pointer to this structure is found in the task structure; 
+Note that the memory management structure can be shared between processes
+
+
+
+streeming api: non coherent(mannual buf flash into memory)
+
+no other operation are performed by driver on buffer data is being writeen
+a buffer being written to a device cannot be mapped until it contains all the data to write. 
+	dma_map_single(dev, dma_handle, size, direction); --- map single buffer to device
+
+	/* dma_map/unmap_single */
+
+	pr_info("\nTesting dma_map_single()................\n\n");
+	kbuf = kmalloc(size, GFP_KERNEL);
+	handle = dma_map_single(&dev, kbuf, size, direction);
+	output(kbuf, handle, size, "This is the dma_map_single() string");
+	dma_unmap_single(&dev, handle, size, direction);
+	kfree(kbuf);
+
+

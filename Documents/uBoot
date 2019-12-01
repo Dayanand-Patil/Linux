@@ -1,0 +1,26 @@
+//Uboot
+
+If Chipset controller increases form factor increases.If all coontroller is part of SoC then form factor is less
+Soc Provides on chip memory controller to to connect ext memory devices
+//MPU:
+ARM Cortex A8 processor [32 bit RISC processor speed 1GHz]
+RAM - 64kb
+ROM - 176kb
+L1 Instruction cache : 32 kb
+L1 Data cache : 32 kb
+
+Interconnect: High speed buses to carry data/info between diffrent controllers and peripherals.
+Every interconnect having set of register which used to controle speed and data on buses.
+
+//memory Interfaces:
+GPMC [general perpose memory controller] : used to connect NAND/NOR types of flash memory.it used connect static flash memory.
+If you want connect DDR2 or 3 dynamic RAM, connection has to go through DDR2/3 controller(EMIF) 
+
+MMC0 interface => SD card (MMC0_DATA0) 16 GB
+MMC1 interface => eMMC (MMC1_DATA0) 4 GB
+DDR ibterface ==> DDR 512 MB
+//eMMC Booting
+
+eMMC : 4 GB
+
+

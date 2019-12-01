@@ -1,0 +1,20 @@
+//daya@daya-HP-630-Notebook-PC:~/LDD/KM_GIT/km28esp41/arch/arm/cpu/armv7/am33xx$ l
+board.c            clock_am33xx.c  clock.c         clock_ti816x.c  ddr.c    Kconfig   mux.c       u-boot-spl.lds
+clk_synthesizer.c  clock_am43xx.c  clock_ti814x.c  config.mk       emif4.c  Makefile  sys_info.c
+
+//arch/arm/include/asm/arch-am33xx/mux.h:45:void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux);
+
+// /board/ti/am335x/mux.c
+static struct module_pin_mux uart0_pin_mux[] = {
+        {OFFSET(uart0_rxd), (MODE(0) | PULLUP_EN | RXACTIVE)},  /* UART0_RXD */
+        {OFFSET(uart0_txd), (MODE(0) | PULLUDEN)},              /* UART0_TXD */
+        {-1},
+};
+
+void enable_uart0_pin_mux(void)
+{
+        configure_module_pin_mux(uart0_pin_mux);
+}
+
+
+// /lib
