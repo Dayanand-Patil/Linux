@@ -1,0 +1,95 @@
+Android Boot Loader (Little Kernel)
+
+tasks: h/w init, read the kernel & ramdisk from storage and load to RAM
+
+setting up initial command line argument for linux kernel
+
+loads boot.img from storage
+
+supports flashing and recovery
+
+----> compiling the lk: in full android source AndroidBoot.mk contains following instruction
+
+export the gcc toolchain path:: export PATH=$PATH:<Path to arm-eabi-*> binaries
+export toolchain prefix path:: export TOOLCHAIN_PREFIX=arm-eabi-
+compile lk to generate emmc_boot.mbn and lk symbol bin:: make msm8909 EMMC_BOOT=1
+
+
+ Kernel authentication
+
+sign the boot.img
+PRODUCT_PRIVATE_KEY=<path of the user private key> flag defined in device/qcom/common/common.mk. 
+It then concatenates this signed hash value at the end of raw boot.img to generate signed boot.img.
+
+Verified boot:
+	used for kernel and recovery image authentication
+
+LK(Android boot) authenticates the kernel(boot.img)  
+	1. If the TARGET_BOOTIMG_SIGNED= true flag is set in the target’s BoardConfig.mk file, LK verifies boot.img before booting up into Linux kernel
+	2. during boot lk strips out boot.img and sign hash key attached at end of boot.img, if key matches kernel img verified succefully
+	3. On successful verification of the kernel image, LK passes “androidboot.authorized_kernel=true” to the kernel in the kernel command line
+	
+
+2.4 Device tree identification ::
+For ARM architecture, the device tree source can be found in : kernel/arch/arm/boot/dts/qcom
+Identifying the right device tree
+
+LK scans through the device tree table to look for a matching entry. The search order is:
+a. Exact match − All of these MUST match.
+
+– Platform id − Contains msm ID and foundry ID.
+– MSM ID
+– Foundry ID − Look for exact match; 
+		if not found choose device tree with foundry-id(0x0).
+Platform subtype − Subtype for the board
+ Platform type, hardware ID
+ PMIC model
+
+
+
+Updating the device tree
+ LK populates the memory node with the memory regions’ start address and size.
+ LK also modifies the chosen node to add the boot arguments and RAM disk properties.
+a. DEVICE_TREE: device tree flag is set in /project/$(PROJECT).mk.
+b. The device tree is defined in /arch/arm/boot/dts/qcom/apq8016-sbc.dtsi.
+
+	The skeleton device tree is defined in /arch/arm/boot/dts/skeleton.dtsi:
+		{ 
+			#address-cells = <1>;
+			#size-cells = <1>;
+			chosen { }; // for boot args
+			aliases { }; // mention aliase for prop.
+			memory {                       // memory node
+				device_type = “memory”;   
+				reg = <0 0>;  //<add, size>
+			};  
+		};
+
+call flow:
+	seq starts with /arch/arm/crt0.S: _start
+	1. set up cpu
+	2. _cpu_early_init() - platform specific init /platform/msm8909/arch_init.S: _cpu_early_init()
+	3. relocate if necessary
+	4. set up stack
+	5. call kmain
+		kernel/main.c: kmain()
+		thread_init_early()
+		arch_early_init()  --> arm
+		platform_early_init()  --> msm
+		target_early_init()    --> 8909
+		init: heap, thread, times, dpc --> kernel init
+		bootstrap2:
+			-Arch_init() --> arch/arm/arch.c
+			-platform_init() --> platform/<platform>/(platform.c)
+			-target_init()  --> target/<target>/(init.c)
+				[Init SPMI; init keypad; init sd host controller/mmc card; identify mmc card; set the clock; mmc init(); 
+				read the partition table from eMMC card, partition_read_table()]
+		
+			-apps_init() -- app/init.c 
+				-init apps - APP_START; APP_END
+				-app/aboot/aboot.c –aboot_init()
+				Performs any one of the following operations based on settings/circumstances(key combinations pressed):
+					1. Regular boot 2. fastboot mode to flash image 3. recovery image
+
+LK regular boot:
+	

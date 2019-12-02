@@ -1,0 +1,19 @@
+Device tree overlay to change default mode configuration of pin
+
+which r the pins are available in GPIO mode  : sys/kernel/debug/  ; cat gpio
+
+check the pin mode configuration register val for specific pin : cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins
+
+control the gpio : /sys/class/gpio
+
+as per pin mode coontrole register:
+0x0000037 = 0011 0111 = gpio mode + pull up selected + input mode  
+
+connect ext led to pin p8_16:
+	export gpio in /sys/class/gpio
+	e.g: echo 87 > export
+	cd gpio87
+	cat direction
+
+
+
