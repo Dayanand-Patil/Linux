@@ -1,0 +1,104 @@
+2.4 Device tree identification
+The device tree flag (DEVICE_TREE) is set in /project/msm8909.mk
+
+2.4.1 Device trees : kernel/arch/arm/boot/dts/qcom 
+	b. Properties are key-value pairs and node may contain both properties and child nodes.
+
+Device tree table header: struct dt_table{--}
+Device tree entry: struct dt_entry{--}
+
+Each DTS per device will add a qcom,msm-id / qcom,board-id / qcom,pmic-id entry
+At boot time lk parses this info and decides which device tree need to pass to kernel
+	qcom,msm-id = <206 0>, // platform id, soc_rev
+		      <247 0>;
+	qcom,board-id = <24 0>
+
+
+Calls made from bootstrap2():
+a. arch/arm/arch.c –arch_init()   
+	disable cache
+	set the vector base
+	init the mmu
+	enable cache
+b. platform/msm8909/platform.c: –platform_init()
+	void platform_early_init(void)
+	{
+        	board_init();
+        	platform_clock_init();
+        	qgic_init();
+        	qtimer_init();
+        	board_ddr_map();
+	}
+
+c. target/<target>/(init.c) –target_init()
+	init SPMI(system power mngmnt interface)
+	init keypad
+	init the SD host controller; MMC card; set the clock
+	mmc_init()
+	read partition table from eMMC
+	partition_read_table()
+	
+2.7.2 void boot_linux() {
+	update_device_tree()
+	check for the 32/64 bit kernel and jump to specific kernel	
+
+Code snippet – updating the device tree
+	update_device_tree
+	/*Check the device tree header*/
+	/*Get off set of the ”memory” node*/	
+	/* Update “memory” node* /
+	/*Get off set of the ”chosen” node*/
+	/* Adding the cmdline to the ”chosen” node */	
+	/*Adding the initrd-start to the chosen node*/
+	/*Adding the initrd-end to the chosen node*/
+		
+
+Identifying the right device tree: bootable/bootloader/lk/platform/msm_shared/board.c & dev_tree.c
+	at boot time this file will read below parameters from DTB:
+Exact match − All of these MUST match.
+– Platform id − Contains msm ID and foundry ID.
+– MSM ID
+– Foundry ID, board Platform type, hardware ID PMIC model
+
+bootable/bootloader/lk/platform/msm_shared/scm.c
+	flush older TZ changes & apply new 
+
+LK regular boot: ==> Recovery flag or fastboot keys are disabled at regular boot time
+	-pulls out boot.img from MMC and load into scratch region(target/msm8909/rules.mk ==> BASE_ADDR=0x80000000)
+	-loads kernel from scratch region into KERNEL_ADDR (project/msm8909.mk ==> ABOOT_FORCE_KERNEL_ADDR=0x80008000)(reterived from boot.img header)
+	-loads RAM disk from scratch region into RAMDISK_ADDR (project/msm8909.mk ==> ABOOT_FORCE_RAMDISK_ADDR=0x82000000)(reterived from boot.img header)
+	-find the right device tree and loads at address TAGS_ADDR(project/msm8909.mk ==> ABOOT_FORCE_TAGS_ADDR=0x81E00000)(reterived from boot.img heder)
+	-Updates the device tree by:
+		memory node
+		adding HLOS region reg <addr, size>
+		adding bootargs, Ram disk prop.
+		disable interrupts & cache, jump to kernel
+
+Code snippet 
+==> app/aboot/aboot.c
+boot_linux_from_mmc() {  
+	1. structboot_img_hdr*hdr=(void*)buf; // boot image header
+	2. /* Read boot image header from emmcpartition into buf*/
+	3. /*Read image without signature into scratch partition */
+	4. /* Read the signature to scratch addr */
+	5. /* Kernel image auth. */
+	6. /* move kernel ramdisk, & device tree to correct addr. */
+	7. /* Find the DT table */
+	8. claculate the index of the device tree within device tree */
+	9. boot_linux: update the device tree and jump to kernel
+}
+
+
+
+
+
+
+
+
+
+issue#1 mkboot: https://stackoverflow.com/questions/15573917/need-help-compiling-mkbootimg-binary-for-android
+
+WK task
+https://translate.google.com/translate?sl=auto&tl=en&u=http%3A%2F%2Fwww.yanglajiao.com%2Farticle%2Fyouyoulg%2F6898953 == good
+http://www.yanglajiao.com/article/WEINILUO/53906713
+https://translate.google.co.in/translate?sl=auto&tl=en&u=http%3A%2F%2F4hou.win%2Fwordpress%2F%3Fp%3D3124  == good

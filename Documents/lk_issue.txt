@@ -1,0 +1,61 @@
+add support for msm8905
+	platform/msm8909/platform.c
+	platform/msm_shared/smem.h
+	target/msm8909/init.c
+
+display related support:
+	dev/gcdb/display/
+
+mention secure app region
+	platform/msm8909/include/platform/iomap.h
+
+lk compilation:
+	AndroidBoot.mk
+
+msm8909: set hx8394d 480p video mode panel as default panel for msm8905
+	target/msm8909/oem_panel.c -- panel selection for msm8909
+	dev/gcdb/display/gcdb_display.c --> diplay operations(panel enable/reset, display on/off, panel display size)
+
+app/aboot/aboot.c
+	1.battory cap ok --
+	2.boot verifier init
+	3.is_sec_boot_enable
+	4.check kernel signature
+	
+	5.boot_linux_from_emmc			        /*
+         * Update loading flow of bootimage to support compressed/uncompressed
+         * bootimage on both 64bit and 32bit platform.
+         * 1. Load bootimage from emmc partition onto DDR.
+		        /*
+         * Update the kernel/ramdisk/tags address if the boot image header
+         * has default values, these default values come from mkbootimg when
+         * the boot image is flashed using fastboot flash:raw
+         */
+	 
+	/* Move kernel, ramdisk and device tree to correct address at adrr mention at header*/
+
+
+
+sec boot enable:
+
++static uint32_t is_secboot_enable()
++{
++       uint32_t rc;
++       uint32_t sb_enable=0;
++       uint32_t sb1,sb2,sb3;
++
++       rc = readl(SEC_CTRL_CORE_BASE + 0x0098) ; //Read boot config base addr(found in iomem.h)
++       dprintf(CRITICAL, "secure boot state=0x%x\n",rc); 
++       sb1=rc & 0x20;//bit5  
++       sb2=rc & 0x2000;//bit13  
++       sb3=rc & 0x200000;//bit21
++       sb_enable=(sb1 && sb2 && sb3);
++       dprintf(CRITICAL, "sb_enable=%d\n",sb_enable);
++       return sb_enable;
++
++}
++
+
+boot_verifier.c for key verification
+key present in oem_keystore.h
+

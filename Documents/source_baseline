@@ -1,0 +1,29 @@
+https://git.szzt.com/yixing/ticai_src/tree/msm8953_baseline
+
+ 	
+Last commit
+	Last update
+ADSP.8953.2.8.2/adsp_proc 	init android and modem code 	2 years ago
+BOOT.BF.3.3/boot_images 	init android and modem code 	2 years ago
+CNSS.PR.4.0/wcnss_proc 	init android and modem code 	2 years ago
+CPE.TSF.1.0/cpe_proc/build/ms/bin 	init android and modem code 	2 years ago
+LA.UM.5.6/LINUX/android 	调整桌面,参考体彩的建议 	1 year ago
+MPSS.TA.2.3/modem_proc/build/ms/bin/8953.genw3k.prod 	init android and modem code 	2 years ago
+MSM8917.LA.3.0/common/sectools 	添加安全boot相关编译资源 	1 year ago
+MSM8937.LA.3.0/common/sectools 	添加安全boot相关编译资源 	1 year ago
+MSM8953.LA.2.0 	32G修改 	1 year ago
+RPM.BF.2.4/rpm_proc/build/ms 	init android and modem code 	2 years ago
+TZ.BF.4.0.5 	init android and modem code 	2 years ago
+VIDEO.VE.4.2/venus_proc/build/bsp 	init android and modem code 	2 years ago
+bin/asic/pil_split_bins 	init android and modem code 	2 years ago
+auto_msm8953_build.sh 	修改OTA包名称规则 	1 year ago
+auto_msm8953_local_out.sh 	修改OTA包名称规则 	1 year ago
+auto_msm8953_ota.sh 	修改OTA包名称规则 	1 year ago
+auto_msm8953_qfil_local_out.sh 	修改QFIL打包脚本 	1 year ago
+auto_msm8953_release.sh 	fixed build release bug 	1 year ago
+build.bat 	init android and modem code 	2 years ago
+build_SC60_secboot.bat 	添加安全boot相关编译资源 	1 year ago
+build_SG30_secboot.bat 	添加安全boot相关编译资源 	1 year ago
+build_SG36_secboot.bat 	添加安全boot相关编译资源 	1 year ago
+contents.xml 	szzt partition 	1 year ago
+env.bat 	init android and modem code 	2 years ago
