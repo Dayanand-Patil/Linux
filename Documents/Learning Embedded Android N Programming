@@ -1,0 +1,79 @@
+build/envsetup.sh:: 
+	target build varient: usr, ud, eng
+	TARGET_BUILD_TYPE
+	TARGET_TOOLS_PREFIX
+	OUT_DIR
+	TARGET_PREBUILT_KERNEL
+
+lunch:
+
+Diving into Android.mk:
+	LOCAL_PATH:= sets it to the current module path
+	include $(CLEAR_VARS)  :resets all the previously set variables and allows the current module to safely access its local variables
+	LOCAL_SRC_FILES:=\ source files contained in the current module:
+	LOCAL_CFLAGS:= argument we are going to pass to the compiler
+	LOCAL_MODULE_TAGS := eng :which variant this module belongs to(this module available when we will build the eng build variant of the system)
+	LOCAL_MODULE_PATH := where to install the compiled executable file
+	LOCAL_MODULE:= This specifies the module name
+	LOCAL_LDFLAGS += linker will have its set of specific arguments
+	include $(BUILD_EXECUTABLE): specifies which type of module we are trying to build
+	
+
+The LOCAL_ variables: we can customize our module according to this list
+The BUILD_ variables: variables available during the development of a custom module
+
+creating custom device
+every manufaturer folder contains its own device device/qcom
+create the files which allows build system to detect our device
+	Android.mk: how to compile the source file
+	AndroidProduct.mk: cosnsist of product makefile variable 
+		PRODUCS_MAKEFILES:
+			$(LOCAL_DIR)/msm8909_512.mk 
+
+
+	msm8909_512.mk: product relevent info
+		PRODUCT_PACKAGE+=
+		PRODUCT_COPY_FILES+=
+		PRODUCT_NAME:= full_f488
+		PRODUCT_DEVICE:= f488
+		PRODUCT_MODEL:= Android for Irarref F488	
+	
+	Boardconfig.mk: board related info
+		use of componenets and images(i.e kernel, bootloaders)
+	vendorsetup.sh:
+		add_lunch_combo full_msm8909_512-eng
+		
+
+Now compile the code : source build/envsetup.sh; lunch; make -j8;
+
+
+Fastboot: Manupulates device flash memory and its partition
+fastboot does not communicate with android system, it communicates with specific firmware in bootloader mode
+flash: used to deploy ne binary system image from host computer to device partition
+erase: delete specific partition
+reboot : this option is used to reboot device in one of the following mode: recovery, normal
+format: format specific partition
+
+Hardware architectures: ARM family, with its ARMv7 and ARMv8-A
+
+proprietary software by three of its component manufacturers:
+•Broadcom: NFC, Bluetooth, and Wi-Fi
+•Motorola: Media, audio, thermal, touchscreen, and sensors
+•Qualcomm: GPS, audio, camera, gesture, Graphics, DRM, video, and sensors
+
+Setup:
+	export toolchain path
+	export /tools path from uboot
+
+compile bootloader
+compile linux
+
+Flashing Android images
+	$ fastboot oem unlock
+	:$ fastboot flash system system.img
+	:$ fastboot flash boot boot.img
+	:$ fastboot flash recovery recovery.img
+	:$ fastboot reboot
+
+
+

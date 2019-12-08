@@ -1,0 +1,38 @@
+steps:  Android JB4.3 build
+1. download the android source branch android_4.3
+2. download android kernel_imx(-b jb_4.3_1) and bootloader(-b jb_4.3_1)
+3. cd  kernel_imx ; make menuconfig 
+4. generate uboot.bin :: cd bootable/bootloader;  make mx6q_sabresd_android_config
+5. generate uimage :: 
+		export PATH=~/myandroid/bootable/bootloader/uboot-imx/tools:$PATH //mkimage utility is present in this path
+		export ARCH=arm
+		export CROSS_COMPILE=~/myandroid/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
+		make uImage  //location: kernel_imx/arch/arm/boot/
+
+gparted:
+delete exixting partition on sd card, create ext4 partition for holding android file system, label this partition as rootfs
+before creating partition leave the 100mb space for bootloader and kernel
+commands to flash the Boot loader, Kernel and the Android File system:
+
+**Flashing the Boot loader:
+	$ cd ~/myandroid/bootloader/uboot-imx/
+	$ sudo dd if= u-boot.bin of=/dev/sdc bs=1k seek=1  
+	
+Flashing the Kernel
+	$ cd ~/myandroid/kernel_imx/arch/arm/boot
+	$ sudo dd if=uImage of=/dev/sdc bs=1M seek=1
+
+Flashing the File system
+$ cd location of the file system tar file
+$ tar -xvf name of the file system tar file -C /media/rootfs/
+
+The SD card is ready to boot on the custom hardware platform.
+
+***optimize boot time by optimizing the kernel image size(i.e by picking the required drivers only)
+
+makefile:
+
+	Create a device/<company_name>/<device_name> directory for your product.
+e.g: device/qcom/msm8909_512/	
+	Create a device.mk makefile that declares the files and modules needed for the device
+e.g: device/qcom/msm8909_512/msm8909_512.mk

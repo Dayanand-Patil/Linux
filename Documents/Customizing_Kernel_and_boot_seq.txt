@@ -1,0 +1,75 @@
+You will learn about:
+•	 Toolchain overview
+•	 How to configure the host system to compile your own Linux kernel
+•	 How to configure the Linux kernel
+•	 Linux kernel overview
+•	 Android boot sequence
+•	 The Init process
+
+Retrieving the kernel's binary version : device/moto/shamu-kernel
+git clone https://android.googlesource.com/device/moto/shamu-kernel
+
+This folder contains a file named zImage-dtb —this file is the actual kernel image that can be integrated in our ROM and flashed into our device.
+
+Having the kernel image, we can obtain the kernel version with the following command:
+
+$ $ dd if=kernel bs=1 skip=$(LC_ALL=C grep -a -b -o $'\x1f\x8b\x08\x00\x00\x00\x00\x00' kernel | cut -d ':' -f 1) | zgrep -a 'Linux version'
+
+Obtaining the kernel source code
+git clone https://android.googlesource.com/kernel/msm.git -b android-msm-shamu-3.10-lollipop-release
+
+Setting up the toolchain : linaro
+toolchain allows us to create a system image ready to be flashed to our Android device
+toolchain compile every single C/C++ file for the ARM architecture
+
+AOSP/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/
+This folder contains everything we need to build a custom kernel—the compiler,the linker, and few more tools such as a debugger.
+
+git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+
+Preparing the host system:
+Requirments:
+•	 Ubuntu
+•	 Linux kernel source code
+•	 Toolchain
+•	 Fastboot
+
+start configuring the environment variables we need
+$ export PATH=/home/daya/workspace/porting/arm-eabi-4.8/bin:$PATH
+$ export ARCH=arm
+$ export SUBARCH=arm
+$ export CROSS_COMPILE=arm-eabi-
+
+Configuring the kernel
+
+As a real-world example, we are going to enable the FTDI support its RS-232/TTL to USB devices
+
+Device Drivers|USB support|USB Serial Converter support
+
+Driver management
+Android doesn't use this modular approach: every required feature is built in a single binary kernel file
+
+Altering the CPU frequency:
+overclocking: overclocking could backfire on us with a device rebooting autonomously, for its own protection, or we could even damage the CPU, in the worst-case scenario.
+underclocking: CPU frequency so low that it will result in an unresponsive device or even a frozen device
+
+power managment
+reduce the frequency when the device is idle or in sleep mode
+push the clock to the maximum when the device is under heavy load
+
+manages CPU scaling:
+Linux kernel manages CPU scaling using specific policies called governors via make menuconfig
+CPU power management | CPU freq. scaling
+
+Customizing the boot image:
+These images
+contain a 2KB header sector, the kernel core, compressed with gzip , a RAMdisk, and an optional second stated loader
+
+Android build system to generate a valid boot image with no effort.
+
+We have already compiled kernel 
+	$ export TARGET_PREBUILT_KERNEL=<kernel_src>/arch/arm/boot/zImage-dtb
+Once you have set and exported the TARGET_PREBUILT_KERNEL environment variable, you can launch:
+	$ make bootimage
+A brand new, fully customized, boot image will be created by the Android build system and will be placed in the following folder:
+	$ target/product/<device-name>/boot.img
