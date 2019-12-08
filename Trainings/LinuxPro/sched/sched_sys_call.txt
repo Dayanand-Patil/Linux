@@ -1,0 +1,10 @@
+Take a look at the manual pages for the following scheduling related system calls.
+
+    nice() - Change process priority of a normal process (SCHED_OTHER)
+    getpriority()/setpriority() - get/set program scheduling priority.
+    sched_getscheduler()/sched_setscheduler() - set and get scheduling policy/parameters
+    sched_getparam()/sched_setparam() - set and get scheduling parameters
+    sched_get_priority_max/min - get static priority range
+    sched_rr_get_interval() - get the SCHED_RR interval for the named process
+
+Some of the above APIs also have POSIX equivalents. If you are using pthread APIs, it is recommended that you use the pthread_ variants of these APIs.
