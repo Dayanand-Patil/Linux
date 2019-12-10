@@ -73,3 +73,5 @@ Once you have set and exported the TARGET_PREBUILT_KERNEL environment variable, 
 	$ make bootimage
 A brand new, fully customized, boot image will be created by the Android build system and will be placed in the following folder:
 	$ target/product/<device-name>/boot.img
+
+

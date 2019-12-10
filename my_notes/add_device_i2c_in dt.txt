@@ -1,0 +1,61 @@
+https://stackoverflow.com/questions/33549211/how-to-add-i2c-devices-on-the-beaglebone-black-using-device-tree-overlays
+
+the device tree compiler compiles (dtc) into device tree blobs (.dtb), a binary format. When the system boots the bootloader (e.g. u-boot) hands over that blob to the kernel. The kernel parses it and creates all the devices as given by the device tree.
+
+create an overlay to configure the GPIO pins for the i2c1 bus
+activate that bus , status = "ok"
+
+add rtc device i2c so that approptiate will automaticaly ad the entry at /dev
+
+pin muxing on GPIO pin header p8 and P9
+at p9 header pin P9_17(I2C1_SCL) and P9_18(I2C2_SDA) 
+To configure this pin as i2c we need to set the GPIO mode 2 (Check the TI manual)
+
+
+create overlay node:
+	to create overlay we have two targets 1. pin mux of am335x 2. i2c node to enable RTC
+
+/* Pin mux of am335x for pin configured as i2c
+
+/dts-v1/;
+/plugin/;
+
+/{  /* this is device tree overlay not a root node */
+	
+	compatible = "ti, beaglebone", "ti, beaglebone-black";
+	part-number = "BBB-i2c1";
+	version = "00A0";
+
+	fragment@0 {	
+		target = <&am335x_pinmux>;
+		
+		__overlay {
+			i2c1_pins: pinmux_i2c1_pins{
+				pinctrl-single, pins = <
+					<pin_offset> <GPIO_config_reg_val> // SCL
+					<pin_offset> <GPIO_config_reg_val> //SDA
+					>;
+				};
+			};
+		};
+	
+ 
+/* add node for RTC */
+fragment@1 {  /* RTC node */
+	target = <&i2c1>;
+	__overlay__ {
+		pinctrl-0 = <&i2c1_pins>;  //pinctrl handle
+		
+		clock-frequency = <100000>; //set a I2C clock frequency of 100kHz and activate the device. 
+		status = "okey";
+
+	rtc: rtc@68 {  // this rtc defined as child node for i2c1 bus
+
+		compatible = "dallas,ds1307"; //compatible = "manufaturer, rtc_name"  compatible statement, naming the driver to use (ds1307)
+		#address cells = <1>;
+		#size-cells = <0>;
+		reg = <0x68>;  //devices address on the I2C bus (0x68).
+		};
+	};
+    };
+}; // root node end
