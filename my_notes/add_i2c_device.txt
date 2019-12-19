@@ -1,0 +1,14 @@
+The first step is to detect that the device is present on the bus.
+   detect i2c1 bus devices
+	i2cdetect ‐y ‐r <i2c_num> (i.e i2cdetect ‐y ‐r 1)
+	
+   cat modalias ==> shows i2c bus address
+When UU is displayed, probing was skipped, as the address is already in use by a driver
+
+read in the values of the registers of the device attached to an I2C bus
+	
+	i2cdump ‐y <i2c_num> <slave_addr> (i2cdump ‐y 1 0x53)
+
+while reading the gpio kenel panic occurs
+1. addr2line --> convert address into function name
+2. arm-linux-gnueabi-gdb vmlinux 

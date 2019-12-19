@@ -1,0 +1,51 @@
+what we need to successfully boot 
+SOC am335x, arm cortex a8
+
+PBL from soc loads the SBL/MLO , SBL loads the uboot.img from DDR
+uboot loads the kernel , and then rootfs
+
+sbl preset at boot rom (176kb) present inside SOC	
+
+PBL:
+	power button pressed board undergoes power on reset and jump to rom init address to start pbl
+	__main() - pbl stack initialize
+	main() - 
+		watchdog timer init (watch for 3 min)
+	      -- if pbl failed to load sbl within 3min it will restart soc
+		PLL setup for clock configuration(low to high freq conversion) 20Mhz crystal osc produces 500MHz clock through PLL
+		in sbl we can configure pll for custom freq as per device req.
+
+SBL:
+	check for valid boot image	
+	pbl loads MLO from emmc memory into soc internal SRAM (128KB)
+	pbl checks MLO's image header and image size to check load addr in SRAM	 
+	hence sbl loaded into internal RAM and MLO starts execution
+	MLO:
+		init UART console to print debug msg
+		init DDR register to use ddr memory and load the uboot.img into DDR
+		init pin muxing for soc pripheral also init eMMC to DDR pinmux to 
+		load uboot image from eMMC to DDR pinmux 
+		uboot also consists header[load addr into DDR + size of uboot.img] 				
+		
+		
+Booting of PBL and MLO practically
+	SD card: 2 partition
+		Partition 1: FAT(for MLO, uboot.img) create partition using gparted give name as BOOT and cp MLO /media/<user>/BOOT/MLO
+		partition 2: EXT3/EXT4(rootfs)  create partition using gparted give name as ROOTFS
+		
+	insert sd card into BBB, connect board to Host PC using USB-UART Cable 
+	open minicom; set ttyUSB port and boud rate; 
+	power ON the board and press S2 button on board to boot from eMMC 
+RootFS: using busybox
+	generate rootfs and copy into sd card partition 2	 
+
+uEnv.txt: copy into BOOT partition
+	mention path to load the uimage and rootfs	
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Load the image from uboot cmd line
+	load mmc 0:2 0x82000000 /media/ROOTFS/uimage
+read the uimage header: memory display
+	md 0x82000000 10  --> display 10 parameter mem. addr of uimage header
+
+

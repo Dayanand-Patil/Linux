@@ -1,0 +1,10 @@
+problem1:
+
+I’m working on bringing up a custom embedded linux board which uses the NXP i.mx6UL processor. I’ve got u-boot running, I have an image on my LCD (800×480 parallel LCD), and have built the kernel and device tree, and the kernel seems to load, but I’m getting stuck at the same spot no matter what I do: I’m monitoring via the serial port console output and after the kernel loads various drivers it stops at “Key type dns_resolver registered”. I’m running off of an SD card, and from everything I can tell, the sd card works fine (again, u-boot is running, and I was able to read and write to and from the card in my host system no problem).
+
+I really have no idea whether the kernel is hung or waiting on something or maybe the OS has fully come up but simply isn’t displaying on my LCD for some reason along with maybe not using the serial port any longer as the proper console port to show the shell prompt. I’m at a loss. Two thoughts I had: 1.) can I modify the kernel source to do something like toggle a gpio continuously just to show that the kernel isn’t hunh; 2.) add string output to the console to tell me what it’s currently working on; or 3.) use one or more of the debug methods you mention in this presentation, and if so which would you recommend first?
+
+Secure Boot with Encrypted Flash Not Working (IDFGH-1251)
+https://github.com/espressif/esp-idf/issues/3548
+
+

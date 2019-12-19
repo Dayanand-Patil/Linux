@@ -1,0 +1,4 @@
+/sys/kernel/debug/pinctrl/44e10800.pinmux. There are several files, you should take a look on pimux-pins and pins to get information about the pin-status and drivers occupying the pin. 
+
+i2c : i2c1@
+pinctrl-0, pins = <>

@@ -54,8 +54,33 @@ fragment@1 {  /* RTC node */
 		compatible = "dallas,ds1307"; //compatible = "manufaturer, rtc_name"  compatible statement, naming the driver to use (ds1307)
 		#address cells = <1>;
 		#size-cells = <0>;
-		reg = <0x68>;  //devices address on the I2C bus (0x68).
+		reg = <0x68>;  //devices address on the I2C bus (0x68). // this address can be obtain from Data sheet
 		};
 	};
     };
 }; // root node end
+
+
+And how do I get that code into the kernel?
+	At first the device tree source has to be compiled. Use the dtc compiler with the following call..
+
+dtc -O dtb -o <filename>-00A0.dtbo -b 0 -@ <filename>.dts
+
+load your overlay dynamically by using capmanager, to do so move into
+	/sys/devices/platform/bone_capemgr/
+and then execute :echo <dtb_file> slots
+
+further more there should be new i2c device @ /dev/i2c-1 and RTC @ /dev/rtc1
+
+install i2c bus package: i2c-tools
+	i2cdetect -r 1
+in this u can check that 68 bus addr has accupied
+
+I have been successful in communicating with the chip in the past by instantiating the device manually as follows :echo act2_chip 0x68 > /sys/bus/i2c/devices/i2c-1/new_device.
+
+Load device tree at boot
+open /boot/UEnv.txt and bone_capemgr.enable_partno=<filename> to the opt args statement
+
+optargs=coherent_pool=1M bone_capemgr.enable_partno=bbb-i2c1
+
+
