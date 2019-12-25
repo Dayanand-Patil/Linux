@@ -1,0 +1,51 @@
+
+
+
+gdb:
+	
+	break line_num/finction_name
+	run
+	watch variable
+	print variable
+	clear <break_pt_name>
+	step : step into function call
+	next: step over function call
+	continue : continues until next break point
+	list : looks the code line
+	
+thread
+	run
+	info threads : get the number of threads running in process
+	thread <thread_ID> : switch to specific thread
+	watch counter >= 100 : run until counter value reaches to 100
+
+	break point to thread: break <thread_fun_name> <thread_num>
+	apply command to all diffrent threads : thread apply all <gdb_cmd>
+	thread apply all backtrace : back trace of all the thread
+	thread apply all f : print outs all the threads stack frame
+	
+mem exemine:
+	e.g: struct data d;
+	p size(d)
+	x &d  : print the structure memory details in hex format
+	
+automate:
+	vi gdb_script.sh : add the commands to automate
+	gdb ./a.out -x gdb_script.sh
+
+memory leak check:
+	valgrind
+	  
+	
+bug assertion:
+	add assert() in code for condition check or to check code is running as expected
+
+segfault:
+	check memory curruption
+	bt
+	up
+	print <variable_cause_seg_fault>
+
+A common pitfall when using sizeof() with pointers in C.
+
+
