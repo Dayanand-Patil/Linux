@@ -1,0 +1,36 @@
+Receiving over the air updates – OTA
+
+system updates—when a new Android version has been released,
+security updates—when some critical vulnerability has been fixed
+
+--AOSP Release Tools
+http://jhshi.me/2014/11/09/aosp-release-tools/index.html#.XgrWW8ZS-VA
+
+http://jhshi.me/2013/12/02/how-to-create-and-sign-ota-package/index.html#.XgmgwMZS-VA
+
+--when building an production AOSP platform, how to sign the platform and recovery image properly to match those signature checks.
+http://jhshi.me/2013/12/13/how-to-apply-downloaded-ota-package/index.html#.XgnEqcZS-VA
+http://jhshi.me/2014/08/28/sign-issues-related-to-ota-update/index.html#.XgnECMZS-VA
+https://forum.xda-developers.com/showthread.php?t=1187313
+http://jhshi.me/2014/07/02/fix-adb-permissions/index.html#.XgnFrMZS-VC
+
+APK signing:
+Each APK in the final release has to be properly signed by defining LOCAL_CERTIFICATE. 
+For example, in Android.mk file of packages/apps/Settings, there is this line:
+
+LOCAL_CERTIFICATE := platform
+
+default keys are shipped in build/target/product/security
+
+This script will first unpack the input target files, then sign each APKs using proper keys, and repack them in to a new signed target files zip
+./build/tools/releasetools/sign_target_file_apks -o -d $KEY_DIR out/dist/aosp_hammerhead-target_files-1.2.zip /tmp/signed.zip
+
+Generate Release File:
+You can either generate a full image file that suitable for fastboot update, or you can generate an OTA file that can be updated via recovery.
+
+Full System Image
+
+This script will pack the signed target files into one image file that can be flashed via fastboot update.
+$ ./build/tools/releasetools/img_from_target_files /tmp/signed.zip /tmp/final-release.img
+
+

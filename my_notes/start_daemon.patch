@@ -1,0 +1,33 @@
+Date:   Wed Dec 10 15:39:17 2014 +0530
+
+    start ims daemon.
+    
+    CRs-Fixed: 766242
+    
+    Change-Id: I989f7d9a5cbf9488f8c61f51794844eeea913281
+
+diff --git a/init.target.rc b/init.target.rc
+index e78e104..58245f5 100755
+--- a/init.target.rc
++++ b/init.target.rc
+@@ -161,11 +161,19 @@ on charger
+     load_all_props
+     start qcom-post-boot
+ 
++service imsstarter /system/bin/sh /system/etc/init.qti.ims.sh
++    class main
++    oneshot
++
+ service imsqmidaemon /system/bin/imsqmidaemon
+     class main
+     user system
+     socket ims_qmid stream 0660 system radio
+     group radio net_raw log qcom_diag
++    disabled
++
++on property:service.qti.ims.enabled=1
++    start imsqmidaemon
+ 
+ service imsdatadaemon /system/bin/imsdatadaemon
+     class main
+

@@ -1,0 +1,26 @@
+-          F20A IMEI build verification (Val team)
+
+-          F300B FOTA hops generation and verification (Val team)
+
+-          F120B Data stall issue verification
+
+-          Debug power regression  issue on F20A/F300B/F30C – Dev team
+
+-          Debug R3ER11 Regression issues reported – Dev team
+
+-          Provide fix for F20A FOTA animation issue – Dev team
+
+-          F220B baseline build verification (Checklist + Full sanity) – Val team
+
+-          F20A and F30C power regression issue verification (with DCenabled/disabled) – Val team
+
+-          Issue scrubbing – Val team
+
+-          Tablet baseline build verification (Val team)
+
+-          LF2403S issue verification, log capture  and first level analysis – Val/Dev team
+
+-          Provide highlights/major challenges for the year 2019 – Dev/SCM team
+
+
+

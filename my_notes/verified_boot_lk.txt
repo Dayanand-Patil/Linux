@@ -1,0 +1,54 @@
+verified boot flow: verify the integrity of Android boot and recovery images before bootup
+	
+	In an LK-based implementation, the header file contains Android Verified Boot keystore,
+	and the key should be extracted by parsing the keystore’s fields.
+	
+	Verified boot has two device states: LOCKED and UNLOCKED
+	and four boot statuses:
+	GREEN: boot partition is verified successfully using the OEM key (embedded within the bootloader).
+	YELLOW: the verification using the OEM key has not succeeded but the partition has been verified successfully by the key appended to the image.
+	RED: boot partition cannot be verified successfully without OEM key
+	ORANGE: Image verification not performed, device integrity left to the user
+	
+11.2 LK-based implementation
+	1. PRODUCT_VERITY_SIGNING_KEY used to sign boot and recovery image
+	2. Generation of public key
+	To generate a public key:
+	Generate OEM’s RSA_PUBLIC_KEY_PEM with openssl:
+		openssl pkcs8 -inform DER -nocrypt -in <PRODUCT_VERITY_SIGNING_KEY> -out <RSA_PUBLIC_KEY_PEM>
+	Generate OEM’s RSA_PUBLIC_KEY_DER with openssl:
+		openssl rsa –in <RSA_PUBLIC_KEY_PEM> -pubout –outform DER –out <RSA_PUBLIC_KEY_DER>
+keystore::Generate an OEM keystore.img by running the following command at the top of the Android build tree:
+		keystore_signer <PRODUCT_VERITY_SIGNING_KEY> <verity.x509.pem> <KEYSTORE_IMG> <RSA_PUBLIC_KEY_DER>
+	
+	3. This keystore img used to generate oem_keystore.h for lk bootloader
+		after generation oem_keystore.h copied into :: bootable/bootloader/lk/platform/msm_shared/include/
+	4. Compile the android bootloader
+NOTE :: LK compiles the verified boot code if dm-verity is enabled in the Android build system 
+
+
+boot_signer -- to sign boot img with the key:  1. key.pk8 2. key.x509.pem
+vbmeta.img -- this contains information used to verify all the Android partitions(boot, dtbo, system, vendor and other
+partitions) in a slot
+		
+Android verified boot 2.0
+	This section describes the integrity protection for boot, dtbo, system, vendor and other partitions.
+	
+	boot_signer -- to sign boot img with the key:  1. key.pk8 2. key.x509.pem
+	vbmeta.img --  present in vmetadata partition bootloader verifies vbmetadata.img with OEM key(Key0_pub), 
+			later this vbmeta used to verify all the partitions
+	this contains information used to verify all the Android partitions(boot, dtbo, system, vendor and other
+partitions) in a slot
+
+Hashtree partitions
+	system and vendor partition is verified at runtime using DM-verity 
+	vbmeta hashtree info provided to HLOS by bootloader using krnel cmd line
+	
+	$(MAKE) -C bootable/bootloader/lk TOOLCHAIN_PREFIX=$(CROSS_COMPILE) BOOTLOADER_OUT=../../../$(ABOOT_OUT) $(BOOTLOADER_PLATFORM) $(EMMC_BOOT) $(SIGNED_KERNEL) $(VERIFIED_BOOT) $(DEVICE_STATUS) $(BUILD_VARIANT)
+
+
+dm-verity:  
+		It uses a tree of hashes to sign the entire system partition with a single signature
+	This allows data to be verfied as it is read. if data is not verified 
+
+

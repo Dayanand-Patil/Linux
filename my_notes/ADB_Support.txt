@@ -1,0 +1,78 @@
+
+https://nelenkov.blogspot.com/2013/07/building-wireless-android-device.html
+ADB Support:
+	providing support for debugging, file transfer, port forwarding and more and requires kernel support in addition to the Android daemon and client application
+
+In kernel terms: Android USB Gadget Driver
+
+Config
+1. Configure FunctionFS support in the kernel (CONFIG_USB_FUNCTIONFS=y):
+
+    Device Drivers -> USB Support -> 
+         USB Gadget Support -> USB Gadget Driver -> Function Filesystem
+
+2. uEnv.txt -- modify boot parameter
+	Modify the boot parameters in uEnv.txt to set the vendor and product IDs, as well as the device serial number
+
+    g_ffs.idVendor=0x18d1 g_ffs.idProduct=0x4e26 g_ffs.iSerialNumber=<serial>
+
+3. Setup the FunctionFS directory and mount it in your init.am335xevm.usb.rc file:
+
+    on fs
+        mkdir /dev/usb-ffs 0770 shell shell
+        mkdir /dev/usb-ffs/adb 0770 shell shell
+        mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
+
+
+###Check boot log using serial cable.
+
+
+####ERROR:::::::cgroups patch
+	you will notice a lot of 'Failed setting process group' warnings like this one:
+	
+	W/ActivityManager(  349): Failed setting process group of 4911 to 0
+	W/SchedPolicy(  349): add_tid_to_cgroup failed to write '4911' (Permission denied);
+
+Android's ActivityManager uses Linux control groups (cgroups) to run processes with different priorities (background, foreground, audio, system) by adding them to scheduling groups.
+
+To avoid this warning, you can disable scheduling groups by commenting out the code that sets up /dev/cpuctl/tasks in init.rc
+
+
+MSM_512MB
+ifeq ($(KERNEL_DEFCONFIG),)
+    KERNEL_DEFCONFIG := msm8909-perf_defconfig
+
+CONFIG_SECURITY_SELINUX=y 8909
+
+512
+#add keyboard support
+CONFIG_KEYBOARD_MATRIX=y
+
+CONFIG_GC0310=y
+CONFIG_PM_OPP=y
+
+##for display panel
+CONFIG_FB_MSM_MDSS_SPI_PANEL=y
+
+Append DTB to kernel image
+CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE=y
+
+##Enable NFC support
+CONFIG_NFC_NQ=y
+CONFIG_NFC_NQ_ESE=y
+
+Below are =n in 8909
+CONFIG_BLK_DEV_SD=y
+CONFIG_CHR_DEV_SG=y
+CONFIG_CHR_DEV_SCH=y
+CONFIG_MD=y
+CONFIG_BLK_DEV_DM=y
+CONFIG_DM_CRYPT=y
+
+CONFIG_EXT2_FS=y
+CONFIG_EXT2_FS_XATTR=y
+CONFIG_EXT3_FS=y
+
+
+CONFIG_DM_REQ_CRYPT=y
+CONFIG_DM_VERITY=y

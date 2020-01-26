@@ -1,0 +1,50 @@
+Debugging Android kernel: Passing arguments to android kernel while booting
+
+Configure kernel command line
+
+    Specify ttyGS0 as the kgdboc device. Add the following into the kernel command line (possibly in BoardConfig.mk)
+
+    kgdboc=ttyGS0 kgdbretry=4
+
+    The second option "kgdbretry=4" is a new parameter added to kgdboc.c. 
+kgdbretry=4    
+    It means that if kgdb cannot find the device "ttyGS0" in early boot, 
+    it will retry once after the specified number of seconds. 
+    This is a work-around if the USB device is not immediately initialized during system boot.
+
+You can Change kernel command line like this:
+
+setenv bootargs mem=128M kgdboc=ttyGS0 kgdbretry=4
+
+saveenv
+
+you may need to delete console=ttyAS0,115200 from Boardconfig.mk for kgdb to work properly.
+
+
+    Mount system partition as Read-only to fix FOTA Block-based update issue
++    mount ext4   /dev/block/bootdevice/by-name/system /system   ro barrier=1
+
+
+
+# Android fstab file.
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+#TODO: Add 'check' as fs_mgr_flags with data partition.
+# Currently we dont have e2fsck compiled. So fs check would failed.
+
+#********Attention********
+# Please take care of fstab.qcom_verify kindly when you want to change this file.
+#*************************
+
+#<src>                                  <mnt_point>  <type>  <mnt_flags and options>              <fs_mgr_flags>
+/dev/block/bootdevice/by-name/system    /system     ext4    ro,barrier=1,discard                          wait,verify
+/dev/block/bootdevice/by-name/userdata  /data       ext4    nosuid,nodev,noatime,barrier=1,noauto_da_alloc,discard      wait,check,encryptable=footer
+/dev/block/zram0             		none       swap    defaults    zramsize=268435456
+/devices/soc.0/7864900.sdhci/mmc_host*        /storage/sdcard   vfat    nosuid,nodev         wait,voldmanaged=sdcard:auto,encryptable=footer
+/dev/block/bootdevice/by-name/config    /frp     emmc            defaults                         defaults
+
+
+
+
+

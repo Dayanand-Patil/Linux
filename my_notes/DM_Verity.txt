@@ -1,0 +1,59 @@
+#####Enable dm-verity in a Lollipop build
+
+1. CONFIG_DM_VERITY in the kernel configuration to allow kernel to mount the verified partition.
+
+2. Enable the verification tree in the build product support
+	device/qcom/msm8994/msm8994.mk
+		PRODUCT_SUPPORTS_VERITY := true
+		PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/bootdevice/by-name/system
+
+3. Update the target’s fstab file to verify the system partition
+	In device/qcom/msm8994/fstab.qcom add verify to the flags:
+		/dev/block/bootdevice/by-name/system /system ext4 ro,barrier=1 wait,verify
+
+
+#######Confirm dm-verity is enabled after compilation
+	1. After the device boots up, try to remount the system partition, run the following
+	command:
+		adb shell mount –o rw,remount /system
+	If dm-verity is enabled, remounting the system partition fails and returns the IO error
+	
+	2. Pull the fstab.qcom file from the ADB root directory, and run the following command:
+		adb pull /fstab.qcom c:\temp\fstab
+	Check that “verify” is one of the flags for the system partition in the fstab file:
+		/dev/block/bootdevice/by-name/system /system ext4 ro,barrier=1 wait,verify
+
+
+####################### Kernel module signing ######################################
+Kernel module signing::
+protects the kernel from the modules that are loaded into the kernel during runtime(even they are sign with correct key).
+
+if user or system tries to load a module, 
+kernel checks the signature of the module for authentication by verifying it against the public key embedded within the kernel.
+
+Public and private keys::
+Public key: verify that the signed modules in kernel during build process.
+private keys: used to sign the modules either during the build process itself or offline using signing scripts that reside on the build.
+
+ #Signed modules:
+	The signature is appended at the end of the module.
+	To check if a module is signed or not, use the following command:
+		hexdump -C <module_name> | tail
+
+##14.2 Enable kernel module signing
+CONFIG_MODULE_SIG=y 		
+	With this master flag, key generation is enabled and public key is embedded into the kernel
+
+CONFIG_MODULE_SIG_ALL=y
+	Signs all the modules present in the build during build compilation.
+
+CONFIG_MODULE_SIG_FORCE=y
+Forces to load the modules at run time  on the target(but, it must be signed with the correct key);
+
+14.3 Verify that module signing is enabled
+	if Try to load the unsigned module on device it should fail
+	
+	#insmod ipc_logging_test.ko
+Error::	Insmod: init_module 'ipc_logging_test.ko' failed (required key not available).
+
+

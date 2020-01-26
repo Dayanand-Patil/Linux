@@ -1,0 +1,156 @@
+Communicating Verified Boot state to Android
+
+Example screen:
+LOCK confirmation device warning screen
+
+The bootloader communicates Verified Boot state to Android through kernel-command options. It sets the androidboot.verifiedstate option to one of the following values:
+
+    green: if device is LOCKED and user-settable root of trust is not used
+    yellow: if device is LOCKED and user-settable root of trust is used
+    orange: if device is UNLOCKED
+
+The androidboot.veritymode option is set to eio or restart depending on which state the boot loader is in with respect to handling dm-verity errors
+
+Verified Boot issues fall into these categories: 
+struct verified_boot_state_name vbsn[] =
+{
+        {GREEN, "green"}
+, //
+        {ORANGE, "orange"}
+,
+        {YELLOW,"yellow"}
+,
+        {RED,"red" }
+,
+}
+;
+
+
+All parameters inside the H file are called by the int init_panel_data function inside the OEM_PANEL.C. Next follow the code. OEM_PANEL.C is located in the Bootable\bootloader\lk\target directory.
+
+
+Aboot.c:void aboot_init Function parsing:
+void Aboot_init (const struct App_descriptor *app) {unsigned reboot_mode = 0;
+/* initialise Wdog to catch early LK crashes */
+#if 
+	wdog_support msm_wdog_init ();
+#endif
+/* Setup page size information for NV storage */
+
+if (Target_is_emmc_boot ())//detect is EMMC or flash storage and set page sizes, generally 2048 	
+{
+	page_size = Mmc_page_size ();
+
+	Page_mask = page_size-1;
+	Mmc_blocksize = Mmc_get_device_blocksize ();
+	Mmc_blocksize_mask = mmc_blocksize-1;
+}
+ else {
+	page_size = Flash_page_size ();
+	page_mask = page_size-1;
+}
+
+ASSERT ((membase + memsize) > Membase);
+Asserts that if the memory base address + memory size is less than the memory base, the direct termination error 
+	read_device_info (&device);
+From the DevInfo partition table read data to the device structure body 
+	read_allow_oem_unlock (&device);
+The unlock status is recorded in the DevInfo partition, which is read from the device
+
+/* Display splash screen If enabled */
+#if display_splash_screen 
+#if NO_ALARM_DISPL AY 
+if (!check_alarm_boot ()) 
+{
+#endif 
+dprintf (spew, "Display init:start\n");
+#if ENABLE_WBC/* Wait if the display Shutdow n is in progress * * while (Pm_app_display_shutdown_in_prgs ());
+if (!pm_appsbl_display_init_done ()) Target_display_init (Device.display_panel);
+Display Splash,splash that is, the application starts before the start of a screen, the above simple introduction of the application of the manufacturer, the manufacturer's logo, name and version of information, more than a picture of else display_image_on_screen ();
+#else Target_display_init (Device.display_panel);
+#endif dprintf (Spew, "Display init:done\n");
+#if No_alarm_display}
+ #endif #endif
+Target_serialno ((unsigned char *) sn_buf);
+dprintf (Spew, "Serial number:%s\n", sn_buf);
+memset (display_panel_buf, ' max_panel_buf_size ');
+
+/* * Check power off reason if user force reset, * If yes phone would do normal boot. */if (Is_user_force_reset ()) goto normal_boot;
+If forced restart, go directly to Normal_boot
+
+/* Check If we should do something other than booting up */if (keys_get_state (key_volumeup) && keys_get_state (KEY _volumedown) {//Startup reason is the user holding down the volume up and down key to enter the download mode dprintf (Always, "dload mode key sequence detected\n");
+Reboot_device (EMERGENCY _dload);
+dprintf (CRITICAL, "Failed to reboot into Dload mode\n");
+Boot_into_fastboot = true;
+The download mode is essentially entered into fastboot}
+ if (!boot_into_fastboot)//If the download mode is not entered via usb+ (Keys_get_state (key_home) | | keys_get_state ( Key_volumeup)//Enter recovery mode boot_into_recovery = 1;
+if (!boot_into_recovery && (keys_get_state (key_back) | | keys_get_state (KEY_VOLUMEDOWN))) Boot_into_fastboot = True Enter FastBoot mode}
+ #if no_keypad_driver if (Fastboot_trigger ()) Boot_into_fastboot = true;
+#endif
+
+#if Use_pon_reboot_reg Reboot_mode = Check_hard_reboot_mode ();
+#else Reboot_mode = Check_reboot_mode ();
+Detect the boot cause, and modify the corresponding flag bit #endif if (Reboot_mode = = Recovery_mode) {boot_into_recovery = 1;
+}
+ else if (Reboot_mode = = Fastboot_m ODE) {boot_into_fastboot = true;
+}
+ else if (Reboot_mode = = alarm_boot) 
+{
+	Boot_reason_alarm = true;
+}
+ #if verified_boot #if ! Vboot_mota else if (Reboot_mode = = dm_verity_enforcing) {device.verity_mode = 1;
+write_device_info (&device);
+}
+ else I F (Reboot_mode = = dm_verity_logging) {device.verity_mode = 0;
+Write_device_info (&device);
+}
+ else if (Reboot_mode = = D M_verity_keysclear) {if (Send_delete_keys_to_tz ()) ASSERT (0);
+}
+#endif 
+#endif
+
+Normal_boot:
+if (!boot_into_fastboot) 
+{
+	if (Target_is_emmc_boot ()) 
+	{
+		if (Emmc_recovery_init ()) 
+		dprintf (Always, "error in Emmc_recovery_init\n ");
+if (Target_use_signed_kernel ()) 
+	{if (device.is_unlocked) | | | (device.is_tampered)) {#ifdef tz_tamper_fuse set_tamper_fuse_cmd ();
+#endif #if use_pcom_secboot Set_tamper_flag (device.is_tampered);
+#endif }
+ }
+
+Boot_linux_from_mmc ();
+According to Boot_into_xxx, read the relevant information from the corresponding partition and pass it to kernel, and then boot the kernel. BOOT_LINUX_FROM_MMC () mainly do the following things: 
+1). The program reads the address from the header of the boot partition or the recovery partition, and then loads the kernel, ramdisk into memory. 
+2). The program reads the BOOTLOADER_MESSAGE structure from the misc partition and, if there is a boot-recovery, enters recovery mode 
+3). Update CmdLine, and then write cmdline to the TAGS_ADDR address, Pass the parameter to Kernel,kernel and it will read the parameter to this address. 
+ }
+ else {
+	recovery_init ();
+#if use_pcom_secboot 
+	if ((device.is_unlocked) | | (device.is_tampered)) Set_tamper_flag (device.is_tampered);
+#endif Boot_linux_from_flash ();
+}
+ dprintf (CRITICAL, "error:could not do normal boot. Reverting "to FastBoot mode.\n");
+}
+
+
+/* We are here means regular boot do not happen. Start FastBoot. */
+/* Register aboot specific FastBoot commands */aboot_fastboot_register_commands ();
+Register the FastBoot command, it is recommended to look at the source of this function, this function is fastboot support commands, such as Flash, erase and so on
+/* Dump partition Table for debug Info */
+Partition_dump ();
+/* Initialize and start FastBoot */Fastboot_init (target_get_scratch_address (), target_get_max_flash_size ());
+Initialize FastBoot 
+#if fbcon_display_msg 
+display_fastboot_menu ();
+Show FastBoot Interface 
+#endif
+}
+
+
+This article is an English version of an article which is originally in the Chinese language on aliyun.com and is provided for information purposes only. This website makes no representation or warranty of any kind, either expressed or implied, as to the accuracy, completeness ownership or reliability of the article or any translations thereof. If you have any concerns or complaints relating to the article, please send an email, providing a detailed description of the concern or complaint, to info-contact@alibabacloud.com. A staff member will contact you within 5 working days. Once verified, infringing content will be removed immediately.
+
