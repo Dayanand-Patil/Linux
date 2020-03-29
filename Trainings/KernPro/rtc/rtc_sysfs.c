@@ -18,12 +18,15 @@ static unsigned char get_rtc(unsigned char addr)
 		pr_err("interrupted while waiting for mutex\n");
 		return -1;
 	}
-	outb(addr, ADDRESS_REG);
-	c = inb(DATA_REG);
+	outb(addr, ADDRESS_REG);  // set the addr from rtc to perform operation
+	c = inb(DATA_REG);   // read the data from set location
 	mutex_unlock(&mymtx);
 	return c;
 }
-
+/*
+outb() writes the byte specified by its second argument to the I/O port specified by its first argument. 
+In this context, a "port" is a means for the CPU to communication with another chip.
+*/
 static int set_rtc(unsigned char data, unsigned char addr)
 {
 
@@ -66,8 +69,9 @@ static ssize_t tm_store(struct kobject *kobj, struct kobj_attribute *attr,
 	struct rtc_time time = { 0 };
 
 	pr_info("%s: Invoked\n", __func__);
-
+	//read the data entered by user from buf 
 	sscanf(buf, "time: %x:%x:%x", &time.hour, &time.min, &time.sec);
+	//set_rtc()
 	set_rtc(time.sec, SECOND);
 	set_rtc(time.min, MINUTE);
 	set_rtc(time.hour, HOUR);
